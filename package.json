@@ -11,7 +11,8 @@
     "ask-human:smoke": "tsx src/branch-agent/smoke.ts",
     "resume:smoke": "tsx src/slack-resume-listener/smoke.ts",
     "reconcile:smoke": "tsx src/reconciliation/smoke.ts",
-    "scheduler:smoke": "tsx src/scheduler/smoke.ts"
+    "scheduler:smoke": "tsx src/scheduler/smoke.ts",
+    "pr:smoke": "tsx src/pr-generation/smoke.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
