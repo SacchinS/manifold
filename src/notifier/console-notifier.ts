@@ -1,4 +1,4 @@
-import type { Notifier, PostCheckpointInput, PostCheckpointResult } from "./types.js";
+import type { Notifier, PostCheckpointInput, PostCheckpointResult, PostWarningInput } from "./types.js";
 
 // Stub stand-in for the Slack notifier. Logs what would have been posted and
 // fabricates a thread_ts/channel so the rest of the checkpoint flow (module 4)
@@ -16,5 +16,9 @@ export class ConsoleNotifier implements Notifier {
     const slackThreadTs = `stub-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     console.log(`[stub-slack] posted, thread_ts=${slackThreadTs}\n`);
     return { slackThreadTs, slackChannel: "#stub-channel" };
+  }
+
+  async postWarning(input: PostWarningInput): Promise<void> {
+    console.log(`\n[stub-slack] warning: ${input.message}\n`);
   }
 }

@@ -12,11 +12,14 @@
     "resume:smoke": "tsx src/slack-resume-listener/smoke.ts",
     "reconcile:smoke": "tsx src/reconciliation/smoke.ts",
     "scheduler:smoke": "tsx src/scheduler/smoke.ts",
-    "pr:smoke": "tsx src/pr-generation/smoke.ts"
+    "pr:smoke": "tsx src/pr-generation/smoke.ts",
+    "conflict:smoke": "tsx src/conflict-handling/smoke.ts",
+    "prepare:smoke": "tsx src/pr-generation/prepare-smoke.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
-    "drizzle-orm": "^0.36.4"
+    "drizzle-orm": "^0.36.4",
+    "minimatch": "^10.2.6"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
