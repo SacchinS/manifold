@@ -9,7 +9,8 @@
     "db:smoke": "tsx src/db/smoke.ts",
     "worktree:smoke": "tsx src/worktree/smoke.ts",
     "ask-human:smoke": "tsx src/branch-agent/smoke.ts",
-    "resume:smoke": "tsx src/slack-resume-listener/smoke.ts"
+    "resume:smoke": "tsx src/slack-resume-listener/smoke.ts",
+    "reconcile:smoke": "tsx src/reconciliation/smoke.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
