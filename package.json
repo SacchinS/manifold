@@ -19,7 +19,8 @@
     "sdk:usage-check": "tsx src/sdk-spike/usage-check.ts",
     "usage-guard:smoke": "tsx src/usage-guard/smoke.ts",
     "runner:smoke": "tsx src/branch-agent/runner-smoke.ts",
-    "orchestrator:smoke": "tsx src/orchestrator/smoke.ts"
+    "orchestrator:smoke": "tsx src/orchestrator/smoke.ts",
+    "pr:real-smoke": "tsx src/pr-generation/real-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.251",

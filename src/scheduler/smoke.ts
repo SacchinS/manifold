@@ -110,6 +110,12 @@ async function checkSchedulerTickIntegration() {
   const tick6 = await schedulerTick(run.id, deps);
   console.log("tick 6 (B and C merged) launches D?", JSON.stringify(tick6) === JSON.stringify([d.id]));
 
+  // Launches are fire-and-forget now (schedulerTick no longer awaits the
+  // actual agent run — see tick.ts), so sessionId is persisted by a .then()
+  // continuation that settles shortly after, not necessarily by the moment
+  // schedulerTick itself resolves. The stub launcher resolves near-instantly,
+  // but still on a fresh microtask, so give that one tick a moment to land.
+  await new Promise((resolve) => setImmediate(resolve));
   const [dAfter] = await db.select().from(components).where(eq(components.id, d.id));
   console.log("D has a session_id and is in_progress?", dAfter.status === "in_progress" && !!dAfter.sessionId);
 
