@@ -40,6 +40,7 @@ export const components = sqliteTable("components", {
       "pr_open",
       "merged",
       "conflict_paused",
+      "usage_paused",
     ],
   })
     .notNull()
@@ -86,7 +87,7 @@ export const decisionLog = sqliteTable("decision_log", {
     .notNull()
     .references(() => components.id),
   entryType: text("entry_type", {
-    enum: ["checkpoint_resolved", "autonomous_decision", "conflict_event"],
+    enum: ["checkpoint_resolved", "autonomous_decision", "conflict_event", "runaway_event"],
   }).notNull(),
   content: text("content").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })

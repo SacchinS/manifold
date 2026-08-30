@@ -14,6 +14,7 @@ const IN_FLIGHT_STATUSES = new Set([
   "ready_for_pr",
   "pr_open",
   "conflict_paused",
+  "usage_paused",
 ]);
 
 export interface ComponentForOverlapCheck {

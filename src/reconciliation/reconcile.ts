@@ -75,13 +75,14 @@ async function reconcileOrphanedCheckpoints(notifier: Notifier) {
 }
 
 async function reconcileStuckResumes(sessionResumer: SessionResumer) {
-  // conflict_paused (module 7) reuses the same checkpoint/resume mechanism
-  // as awaiting_input (module 4's ask_human), so a crash between resolving
-  // a conflict checkpoint and firing the resume looks the same way here.
+  // conflict_paused (module 7) and usage_paused (usage guard) both reuse the
+  // same checkpoint/resume mechanism as awaiting_input (module 4's
+  // ask_human), so a crash between resolving one of their checkpoints and
+  // firing the resume looks the same way here regardless of which one it is.
   const waitingOnHuman = await db
     .select()
     .from(components)
-    .where(inArray(components.status, ["awaiting_input", "conflict_paused"]));
+    .where(inArray(components.status, ["awaiting_input", "conflict_paused", "usage_paused"]));
 
   let stuckFound = 0;
   let repaired = 0;
