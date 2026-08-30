@@ -81,7 +81,9 @@ export async function askHuman(input: AskHumanInput, deps: AskHumanDeps): Promis
 
   return {
     status: "paused",
-    message: "Question posted, awaiting human input.",
+    message:
+      "Question posted. Stop here — do not call ask_human again for this question, and do not take further action. " +
+      "Their answer will arrive as your next message once they reply, whenever that is.",
     checkpointId: checkpoint.id,
   };
 }

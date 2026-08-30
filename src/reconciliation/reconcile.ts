@@ -107,15 +107,16 @@ async function reconcileStuckResumes(sessionResumer: SessionResumer) {
     }
 
     try {
+      // No status write here, deliberately — same reasoning as
+      // resolveCheckpoint (resolve.ts): every SessionResumer is responsible
+      // for leaving components.status correct by the time resume() returns,
+      // since a real resumer's resume() runs the agent to its own next
+      // stopping point and already knows the true outcome.
       await sessionResumer.resume({
         componentId: component.id,
         sessionId: component.sessionId,
         answer: latestCheckpoint.answer,
       });
-      await db
-        .update(components)
-        .set({ status: "in_progress", updatedAt: new Date() })
-        .where(eq(components.id, component.id));
       repaired++;
     } catch (err) {
       console.error(`[reconciliation] failed to re-fire resume for component ${component.id}:`, err);

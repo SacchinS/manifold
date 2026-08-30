@@ -29,7 +29,7 @@ class SpyNotifier extends ConsoleNotifier {
 async function main() {
   const root = await mkdtemp(path.join(tmpdir(), "manifold-prepare-smoke-"));
   const base = path.join(root, "base");
-  await git(["init", "-q", "-b", "main", base]);
+  await git(["init", "-q", "-b", "main", base], root);
   await git(["config", "user.email", "smoke@manifold.test"], base);
   await git(["config", "user.name", "Manifold Smoke Test"], base);
   await writeFile(path.join(base, "fileA.txt"), "line1\n");

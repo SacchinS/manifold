@@ -22,6 +22,10 @@ class CountingSessionResumer implements SessionResumer {
   async resume(input: ResumeInput): Promise<void> {
     console.log(`[stub-resume] would resume session ${input.sessionId} with answer: "${input.answer}"`);
     this.calls.push(input);
+    // Every SessionResumer owns leaving components.status correct by the
+    // time resume() returns (see resolve.ts) — mirroring StubSessionResumer
+    // here rather than relying on the caller to do it.
+    await db.update(components).set({ status: "in_progress", updatedAt: new Date() }).where(eq(components.id, input.componentId));
   }
 }
 

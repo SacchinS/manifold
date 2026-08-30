@@ -16,13 +16,23 @@ export interface ResolveCheckpointResult {
 // people replying to the same thread, only resumes the session once — the
 // second call sees zero rows affected and stops.
 //
-// Resume is fired *before* the component's status flips back to
-// in_progress, deliberately. If the process dies between resolving the
-// checkpoint and actually resuming the session, the component is left
-// sitting in awaiting_input with a resolved checkpoint underneath it — an
-// inconsistent, detectable state that startup reconciliation (module 6)
-// scans for and repairs. Flipping the status first would hide that failure
-// behind a component that looks healthy while nothing is actually running.
+// Deliberately does NOT write components.status itself, in either order.
+// Resuming a real branch agent isn't a quick hand-off — it runs the agent
+// to its next natural stopping point, which might be another ask_human call,
+// mark_ready_for_pr, a circuit-breaker stop, or just finishing quietly. Each
+// of those already owns setting the correct final status as part of
+// handling itself; resolveCheckpoint writing status after awaiting resume()
+// would always be racing (and losing) against whichever of those already
+// wrote the real answer, and writing it before would hide a resume failure
+// behind a component that looks healthy while nothing is running. Every
+// SessionResumer implementation is responsible for leaving components.status
+// correct by the time resume() returns — see RealSessionResumer's use of
+// runBranchAgent's own end-of-run status logic, and StubSessionResumer's
+// direct write standing in for it. This also means the crash-window
+// reconciliation (module 6) scans for is simpler than before: status
+// unchanged from its pre-resolve paused value, with the checkpoint already
+// resolved underneath it, in EITHER a resolveCheckpoint crash or a resumer
+// crash.
 export async function resolveCheckpoint(
   checkpointId: number,
   answer: string,
@@ -54,8 +64,6 @@ export async function resolveCheckpoint(
       answer,
     });
   }
-
-  await db.update(components).set({ status: "in_progress", updatedAt: new Date() }).where(eq(components.id, component.id));
 
   return { resolved: true };
 }
