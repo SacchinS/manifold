@@ -49,6 +49,12 @@ export const components = sqliteTable("components", {
   // Allocated lazily on the first visual ask_human checkpoint (module 4).
   devServerPort: integer("dev_server_port"),
   devServerPid: integer("dev_server_pid"),
+  // Set once, the moment the scheduler actually launches this component
+  // (blocked_on_deps -> in_progress) — distinct from createdAt, which is
+  // set at plan materialization and may be long before launch if this
+  // component had to wait on dependencies. Used for the status board's
+  // "how long it's been running" display.
+  startedAt: integer("started_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

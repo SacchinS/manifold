@@ -56,9 +56,12 @@ export async function schedulerTick(runId: number, deps: SchedulerTickDeps): Pro
         branchName: component.branchName,
       });
 
+      // startedAt is set once, right here — this write only ever happens the
+      // one time a component moves out of blocked_on_deps, so it's safe to
+      // set unconditionally without checking whether it was already set.
       await db
         .update(components)
-        .set({ status: "in_progress", updatedAt: new Date() })
+        .set({ status: "in_progress", startedAt: new Date(), updatedAt: new Date() })
         .where(eq(components.id, component.id));
 
       deps.launcher

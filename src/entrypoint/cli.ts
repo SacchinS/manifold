@@ -17,6 +17,9 @@ import { StubVisualCapture } from "../visual-capture/stub-visual-capture.js";
 import { createSlackApp, registerCheckpointHandler, connectSlackApp } from "../slack-resume-listener/real-slack-app.js";
 import { RealSessionResumer } from "../session-resumer/real-session-resumer.js";
 import { ensureTargetRepo } from "./ensure-repo.js";
+import { SlackStatusBoard } from "../status-board/slack-status-board.js";
+import { ConsoleStatusBoard } from "../status-board/console-status-board.js";
+import type { RunStatusBoard } from "../status-board/types.js";
 
 const execFile = promisify(execFileCb);
 
@@ -52,14 +55,16 @@ async function main() {
 
   let orchestratorIO: { print: (text: string) => void; getHumanInput: () => Promise<string> };
   let notifier: Notifier;
+  let statusBoard: RunStatusBoard;
   let checkpointAnswerFallback: RunLoopDeps["getCheckpointAnswer"];
   let stopSlack: (() => Promise<void>) | null = null;
   let rl: readline.Interface | null = null;
 
   if (botToken && appToken && channelId) {
-    console.log("\n--- Slack is configured: plan negotiation, checkpoints, and PR notices all happen there now. ---\n");
+    console.log("\n--- Slack is configured: plan negotiation, checkpoints, PR notices, and the status board all happen there now. ---\n");
     const { app, client } = createSlackApp(botToken, appToken);
     notifier = new SlackNotifier({ client, channelId });
+    statusBoard = new SlackStatusBoard(client, channelId);
     const resumer = new RealSessionResumer({ ...runnerDeps, notifier });
     registerCheckpointHandler(app, { channelId, resolveDeps: { sessionResumer: resumer } });
     orchestratorIO = await createSlackOrchestratorIO(app, client, channelId, featureDescription);
@@ -70,6 +75,7 @@ async function main() {
     console.log("\n--- Slack isn't configured — negotiating the plan right here. ---\n");
     rl = readline.createInterface({ input: stdin, output: stdout });
     notifier = new ConsoleNotifier();
+    statusBoard = new ConsoleStatusBoard();
     orchestratorIO = {
       print: (text) => console.log(`\n${text}`),
       getHumanInput: () => rl!.question("\n> "),
@@ -93,6 +99,7 @@ async function main() {
   await runManifoldLoop(runId, {
     ...runnerDeps,
     notifier,
+    statusBoard,
     baseRepoPath,
     targetRepo,
     baseBranch: "main",

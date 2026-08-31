@@ -12,6 +12,7 @@ import { materializeApprovedPlan } from "../orchestrator/materialize-plan.js";
 import { runManifoldLoop } from "./run-loop.js";
 import { ConsoleNotifier } from "../notifier/console-notifier.js";
 import { StubVisualCapture } from "../visual-capture/stub-visual-capture.js";
+import { ConsoleStatusBoard } from "../status-board/console-status-board.js";
 
 const execFile = promisify(execFileCb);
 const TARGET_REPO = "sacchins/manifold-pr-test";
@@ -67,6 +68,7 @@ async function main() {
   console.log(`\n=== starting run loop (run ${runId}) ===`);
   await runManifoldLoop(runId, {
     notifier: new ConsoleNotifier(),
+    statusBoard: new ConsoleStatusBoard(),
     visualCapture: new StubVisualCapture(),
     baseRepoPath,
     targetRepo: TARGET_REPO,

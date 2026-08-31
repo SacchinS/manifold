@@ -11,9 +11,11 @@ import { RealSummaryWriter } from "../pr-generation/real-summary-writer.js";
 import { RealGitHubClient } from "../pr-generation/real-github-client.js";
 import type { Notifier } from "../notifier/types.js";
 import type { AskHumanDeps } from "../branch-agent/ask-human.js";
+import type { RunStatusBoard } from "../status-board/types.js";
 
 export interface RunLoopDeps extends AskHumanDeps {
   notifier: Notifier;
+  statusBoard: RunStatusBoard;
   baseRepoPath: string;
   targetRepo: string;
   baseBranch: string;
@@ -115,6 +117,21 @@ export async function runManifoldLoop(runId: number, deps: RunLoopDeps): Promise
     });
 
     const refreshed = await db.select().from(components).where(eq(components.runId, runId));
+
+    await deps.statusBoard.update(
+      runId,
+      refreshed.map((c) => ({
+        id: c.id,
+        taskDescription: c.taskDescription,
+        status: c.status,
+        branchName: c.branchName,
+        prNumber: c.prNumber,
+        dependsOn: c.dependsOn,
+        startedAt: c.startedAt,
+        updatedAt: c.updatedAt,
+      })),
+    );
+
     if (refreshed.length > 0 && refreshed.every((c) => c.status === "merged")) {
       deps.print("\nAll components merged. Run complete.");
       await deps.notifier.postWarning({ message: `Run ${runId}: all components merged. Run complete.` });
