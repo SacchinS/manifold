@@ -21,7 +21,9 @@
     "runner:smoke": "tsx src/branch-agent/runner-smoke.ts",
     "orchestrator:smoke": "tsx src/orchestrator/smoke.ts",
     "pr:real-smoke": "tsx src/pr-generation/real-smoke.ts",
-    "slack:real-smoke": "tsx src/slack-resume-listener/real-smoke.ts"
+    "slack:real-smoke": "tsx src/slack-resume-listener/real-smoke.ts",
+    "manifold": "tsx src/entrypoint/cli.ts",
+    "e2e:smoke": "tsx src/entrypoint/e2e-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.251",
