@@ -5,7 +5,7 @@ import { runs, components, checkpoints } from "../db/schema.js";
 import { askHuman } from "../branch-agent/ask-human.js";
 import { StubVisualCapture } from "../visual-capture/stub-visual-capture.js";
 import { SlackNotifier } from "../notifier/slack-notifier.js";
-import { createSlackApp, startSlackListener } from "./real-slack-app.js";
+import { createSlackApp, registerCheckpointHandler, connectSlackApp } from "./real-slack-app.js";
 import { StubSessionResumer } from "../session-resumer/stub-session-resumer.js";
 
 // Real proof of the last stubbed piece: an actual Slack post, received back
@@ -26,7 +26,8 @@ async function main() {
   const resumer = new StubSessionResumer();
   const { app, client } = createSlackApp(botToken, appToken);
   const notifier = new SlackNotifier({ client, channelId });
-  const { stop } = await startSlackListener(app, { channelId, resolveDeps: { sessionResumer: resumer } });
+  registerCheckpointHandler(app, { channelId, resolveDeps: { sessionResumer: resumer } });
+  const { stop } = await connectSlackApp(app);
 
   const [run] = await db
     .insert(runs)

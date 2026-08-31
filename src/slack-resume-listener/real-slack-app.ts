@@ -3,28 +3,31 @@ import type { WebClient } from "@slack/web-api";
 import { handleReply } from "./handle-reply.js";
 import type { ResolveCheckpointDeps } from "../checkpoints/resolve.js";
 
-// Split into two phases deliberately, to break a real circular dependency:
-// the listener needs a SessionResumer, which needs a Notifier (in case the
-// resumed run asks another question), which needs this app's WebClient —
-// but the client exists as soon as the App is constructed, well before
-// .start() opens the actual socket connection.
+// Split into separate steps deliberately. createSlackApp exists apart from
+// starting the connection to break a real circular dependency: a
+// SessionResumer needs a Notifier (in case the resumed run asks another
+// question), which needs this app's WebClient — but the client exists as
+// soon as the App is constructed, well before .start() opens the actual
+// socket connection. registerCheckpointHandler is split from connectSlackApp
+// for the same reason plus one more: the orchestrator's own Slack-based
+// negotiation (slack-chat-io.ts) registers a second listener on this same
+// App, and all listeners should be in place before the one socket
+// connection opens, not after.
 
 export function createSlackApp(botToken: string, appToken: string): { app: App; client: WebClient } {
   const app = new App({ token: botToken, appToken, socketMode: true });
   return { app, client: app.client };
 }
 
-export interface StartSlackListenerOptions {
+export interface RegisterCheckpointHandlerOptions {
   channelId: string;
   resolveDeps: ResolveCheckpointDeps;
 }
 
-// Module 5 in manifold-handoff.md, for real. Socket Mode means no public
-// endpoint is needed, matching the design's reasoning for choosing it over
-// the Events API's HTTP delivery. Reuses handleReply (module 5's actual
-// resolve logic, already proven against stubs) completely unchanged — this
-// file is purely the Slack-specific wiring that was stubbed out until now.
-export async function startSlackListener(app: App, options: StartSlackListenerOptions): Promise<{ stop: () => Promise<void> }> {
+// Module 5 in manifold-handoff.md, for real. Reuses handleReply (module 5's
+// actual resolve logic, already proven against stubs) completely unchanged
+// — this is purely the Slack-specific wiring that was stubbed out until now.
+export function registerCheckpointHandler(app: App, options: RegisterCheckpointHandlerOptions): void {
   app.message(async ({ message }) => {
     // Ignore the bot's own posts (checkpoints, warnings) — without this,
     // every message this app posts would loop back through this same
@@ -42,10 +45,15 @@ export async function startSlackListener(app: App, options: StartSlackListenerOp
       );
     }
   });
+}
 
+// Module 5 in manifold-handoff.md: Socket Mode means no public endpoint is
+// needed, matching the design's reasoning for choosing it over the Events
+// API's HTTP delivery. Call once, after every listener (checkpoint
+// handling, orchestrator negotiation, ...) is already registered.
+export async function connectSlackApp(app: App): Promise<{ stop: () => Promise<void> }> {
   await app.start();
   console.log("[slack] connected via Socket Mode");
-
   return {
     stop: async () => {
       await app.stop();
